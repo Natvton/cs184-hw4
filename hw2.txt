@@ -1,0 +1,3 @@
+code grader: http://ec2-50-18-150-78.us-west-1.compute.amazonaws.com/cs184web/hw2code/reports/cs184-ew/1348762016/index.html
+
+image grader: http://ec2-50-18-150-78.us-west-1.compute.amazonaws.com/cs184web/hw2/reports/cs184-ew/1348762419/
