@@ -14,7 +14,6 @@
 #include "shaders.h"
 #include "Transform.h"
 #include <FreeImage.h>
-#include "UCB/grader.h"
 
 using namespace std ; 
 
@@ -23,9 +22,6 @@ using namespace std ;
 #include "variables.h" 
 #include "readfile.h" // prototypes for readfile.cpp  
 void display(void) ;  // prototype for display function.  
-
-Grader grader;
-bool allowGrader = false;
 
 // Uses the Projection matrices (technically deprecated) to set perspective 
 // We could also do this in a more modern fashion with glm.  
@@ -81,15 +77,6 @@ void keyboard(unsigned char key, int x, int y) {
 	case '-':
 		amount--;
 		std::cout << "amount set to " << amount << "\n" ; 
-		break;
-	case 'i':
-		if(allowGrader) {
-			std::cout << "Running tests...\n";
-			grader.runTests();
-			std::cout << "Done! [ESC to quit]\n";
-		} else {
-			std::cout << "Error: no input file specified for grader\n";
-		}
 		break;
 	case 'g':
 		useGlu = !useGlu;
@@ -187,18 +174,6 @@ int main(int argc, char* argv[]) {
 	glutKeyboardFunc(keyboard);
 	glutReshapeFunc(reshape);
 	glutReshapeWindow(w, h);
-
-	if (argc > 2) {
-		allowGrader = true;
-		stringstream tcid;
-		tcid << argv[1] << "." << argv[2];
-		grader.init(tcid.str());
-		grader.loadCommands(argv[2]);
-		grader.bindDisplayFunc(display);
-		grader.bindSpecialFunc(specialKey);
-		grader.bindKeyboardFunc(keyboard);
-		grader.bindScreenshotFunc(saveScreenshot);
-	}
 
 	printHelp();
 	glutMainLoop();
