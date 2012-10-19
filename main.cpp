@@ -59,6 +59,32 @@ void handleKeyboard(int key, int action)
     }
 }
 
+void loadTextures()
+{
+    Image* img = loadBMP("textures/earth.bmp");
+    glGenTextures(1, &earth_textureID);
+    glBindTexture(GL_TEXTURE_2D, earth_textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+
+    img = loadBMP("textures/mars.bmp");
+    glGenTextures(1, &mars_textureID);
+    glBindTexture(GL_TEXTURE_2D, mars_textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+
+    img = loadBMP("textures/smiley.bmp");
+    glGenTextures(1, &smiley_textureID);
+    glBindTexture(GL_TEXTURE_2D, smiley_textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+
+    delete img;
+}
+
 bool init()
 {
     glfwInit();
@@ -93,28 +119,7 @@ bool init()
 
     glEnable(GL_TEXTURE_2D);    // Required for textures
 
-    Image* img = loadBMP("earth.bmp");
-    glGenTextures(1, &earth_textureID);
-    glBindTexture(GL_TEXTURE_2D, earth_textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
-
-    img = loadBMP("mars.bmp");
-    glGenTextures(1, &mars_textureID);
-    glBindTexture(GL_TEXTURE_2D, mars_textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
-
-    img = loadBMP("smiley.bmp");
-    glGenTextures(1, &smiley_textureID);
-    glBindTexture(GL_TEXTURE_2D, smiley_textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
-
-    delete img;
+    loadTextures();
 
     sphere = gluNewQuadric();
     gluQuadricDrawStyle(sphere, GLU_FILL);
