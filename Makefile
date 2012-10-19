@@ -6,6 +6,6 @@ else
 endif
 RM = /bin/rm -f 
 all: 
-	$(CC) $(CFLAGS) -o space main.cpp $(LDFLAGS) 
+	$(CC) $(CFLAGS) -o space main.cpp imageloader.cpp $(LDFLAGS) 
 clean: 
 	$(RM) *.o space
