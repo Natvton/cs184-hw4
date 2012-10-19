@@ -34,7 +34,9 @@ GLuint earth_textureID;
 GLuint mars_textureID;
 GLuint smiley_textureID;
 GLuint stars_textureID;
-GLfloat earthRot = 0.0f;
+GLuint moon_textureID;
+float earthRot = 0.0f;
+float moonRev = 0.0f;
 
 void handleMouse(int x, int y)
 {
@@ -90,6 +92,13 @@ void loadTextures()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
 
+    img = loadBMP("textures/moon.bmp");
+    glGenTextures(1, &moon_textureID);
+    glBindTexture(GL_TEXTURE_2D, moon_textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+
     delete img;
 }
 
@@ -122,7 +131,6 @@ bool init()
     glClearDepth(1.0f);
     glDepthFunc(GL_LEQUAL);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    glEnable(GL_CULL_FACE);
     glLineWidth(2.0f);  
 
     glEnable(GL_TEXTURE_2D);    // Required for textures
@@ -185,17 +193,36 @@ void display()
         glBindTexture(GL_TEXTURE_2D, earth_textureID); 
 
     glPushMatrix();
-        glRotatef(earthRot, 0, 1, 0);
+        glRotatef(earthRot++, 0, 1, 0);
         glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
         glRotatef(-90.0, 1.0, 0.0, 0.0);
-        earthRot += 1.0;
         gluSphere(sphere, 50.0, 50, 50);
     glPopMatrix();
+    glPushMatrix();
+        glRotatef(15, 1, 0, 0);
+        glRotatef(moonRev+=0.5, 0, 1, 0);
+        glTranslatef(100, 0 ,0);
+        glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
+        glRotatef(-90.0, 1.0, 0.0, 0.0);
+        glBindTexture(GL_TEXTURE_2D, moon_textureID); 
+        gluSphere(sphere, 20.0, 50, 50);
+    glPopMatrix();
 
-    glBindTexture(GL_TEXTURE_2D, stars_textureID); 
-    gluSphere(sphere, 1000, 50, 50);
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glScalef(5,1,1);
+    glMatrixMode(GL_MODELVIEW);
 
+    glPushMatrix();
+        glRotatef(90.0, 0.0, 1.0, 0.0);
+        glRotatef(-90.0, 1.0, 0.0, 0.0);
+        glBindTexture(GL_TEXTURE_2D, stars_textureID); 
+        gluSphere(sphere, 10000, 50, 50);
+    glPopMatrix();
 
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
     
     glfwSwapBuffers();
 }
