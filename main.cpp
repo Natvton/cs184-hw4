@@ -15,7 +15,7 @@ int windowHeight = 800;
 
 int fov = 60;
 int near = 1;
-int far = 1500;
+int far = 15000;
 
 float mouseXSensitivity = 500.0;
 float mouseYSensitivity = 500.0;
@@ -192,7 +192,7 @@ void display()
         gluSphere(sphere, 50.0, 50, 50);
     glPopMatrix();
 
-    glBindTexture(GL_TEXTURE_2D, earth_textureID); 
+    glBindTexture(GL_TEXTURE_2D, stars_textureID); 
     gluSphere(sphere, 1000, 50, 50);
 
 
