@@ -33,6 +33,7 @@ GLUquadricObj *sphere = NULL;
 GLuint earth_textureID;
 GLuint mars_textureID;
 GLuint smiley_textureID;
+GLuint stars_textureID;
 GLfloat earthRot = 0.0f;
 
 void handleMouse(int x, int y)
@@ -78,6 +79,13 @@ void loadTextures()
     img = loadBMP("textures/smiley.bmp");
     glGenTextures(1, &smiley_textureID);
     glBindTexture(GL_TEXTURE_2D, smiley_textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+
+    img = loadBMP("textures/stars.bmp");
+    glGenTextures(1, &stars_textureID);
+    glBindTexture(GL_TEXTURE_2D, stars_textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
@@ -176,11 +184,18 @@ void display()
     else
         glBindTexture(GL_TEXTURE_2D, earth_textureID); 
 
-    glRotatef(earthRot, 0, 1, 0);
-    glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
-    glRotatef(-90.0, 1.0, 0.0, 0.0);
-    earthRot += 1.0;
-    gluSphere(sphere, 50.0, 50, 50);
+    glPushMatrix();
+        glRotatef(earthRot, 0, 1, 0);
+        glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
+        glRotatef(-90.0, 1.0, 0.0, 0.0);
+        earthRot += 1.0;
+        gluSphere(sphere, 50.0, 50, 50);
+    glPopMatrix();
+
+    glBindTexture(GL_TEXTURE_2D, earth_textureID); 
+    gluSphere(sphere, 1000, 50, 50);
+
+
     
     glfwSwapBuffers();
 }
