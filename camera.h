@@ -4,7 +4,8 @@ class Camera
     public:
         float x,y,z;
         void strafe(float);
-        void move(float);
+        void forward(float);
+        void up(float);
         void updateYaw(float);
         void updatePitch(float);
         float getYaw();

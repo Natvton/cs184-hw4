@@ -47,9 +47,16 @@ void Camera::strafe(float amount)
     z += amount * sin(yaw);
 }
 
-void Camera::move(float amount)
+void Camera::forward(float amount)
 {
     x += amount * sin(yaw) * cos(pitch);
     y -= amount * sin(pitch);
     z -= amount * cos(yaw) * cos(pitch);
+}
+
+void Camera::up(float amount)
+{
+    x += amount * sin(pitch) * sin(yaw);
+    y += amount * cos(pitch);
+    z -= amount * sin(pitch) * cos(yaw);
 }

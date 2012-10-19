@@ -1,4 +1,3 @@
-
 #include <iostream>
  
 #include <GL/glfw.h>
@@ -7,6 +6,7 @@
 #include <math.h>   
 #include "camera.h"
 #include "keyboard.h"
+#include "imageloader.h" 
 
 using namespace std;
 
@@ -22,11 +22,18 @@ float mouseYSensitivity = 500.0;
 
 float strafeSpeed = 1.0;
 float moveSpeed = 1.0;
+float upSpeed = 1.0;
 
 const float PI = 3.14159265359;
 
 Camera *camera = new Camera();
 Keyboard *keyboard = new Keyboard();
+
+GLUquadricObj *sphere = NULL;
+GLuint earth_textureID;
+GLuint mars_textureID;
+GLuint smiley_textureID;
+GLfloat earthRot = 0.0f;
 
 void handleMouse(int x, int y)
 {
@@ -84,6 +91,36 @@ bool init()
     glEnable(GL_CULL_FACE);
     glLineWidth(2.0f);  
 
+    glEnable(GL_TEXTURE_2D);    // Required for textures
+
+    Image* img = loadBMP("earth.bmp");
+    glGenTextures(1, &earth_textureID);
+    glBindTexture(GL_TEXTURE_2D, earth_textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+
+    img = loadBMP("mars.bmp");
+    glGenTextures(1, &mars_textureID);
+    glBindTexture(GL_TEXTURE_2D, mars_textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+
+    img = loadBMP("smiley.bmp");
+    glGenTextures(1, &smiley_textureID);
+    glBindTexture(GL_TEXTURE_2D, smiley_textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+
+    delete img;
+
+    sphere = gluNewQuadric();
+    gluQuadricDrawStyle(sphere, GLU_FILL);
+    gluQuadricTexture(sphere, GL_TRUE);
+    gluQuadricNormals(sphere, GLU_SMOOTH);
+
     glDisable(GL_LIGHTING);
 
     glfwSetKeyCallback(handleKeyboard);
@@ -95,13 +132,17 @@ bool init()
 void moveCamera()
 {
     if (keyboard->isHeld('W'))
-        camera->move(moveSpeed);
+        camera->forward(moveSpeed);
     if (keyboard->isHeld('S'))
-        camera->move(-moveSpeed);
+        camera->forward(-moveSpeed);
     if (keyboard->isHeld('A'))
         camera->strafe(-strafeSpeed);
     if (keyboard->isHeld('D'))
         camera->strafe(strafeSpeed);
+    if (keyboard->isHeld(' '))
+        camera->up(upSpeed);
+    if (keyboard->isHeld(GLFW_KEY_LSHIFT))
+        camera->up(-upSpeed);
 }
 
 float radToDeg(float radians)
@@ -123,10 +164,18 @@ void display()
     glRotatef(radToDeg(camera->getYaw()), 0, 1, 0);
     glTranslatef(-camera->x, -camera->y, -camera->z);
 
-    glColor3ub(255, 255, 0);
     if (keyboard->isHeld('Z'))
-        glColor3ub(0, 255, 0);
-    glutSolidTeapot(5);
+        glBindTexture(GL_TEXTURE_2D, mars_textureID); 
+    else if (keyboard->isHeld('X'))
+        glBindTexture(GL_TEXTURE_2D, smiley_textureID); 
+    else
+        glBindTexture(GL_TEXTURE_2D, earth_textureID); 
+
+    glRotatef(earthRot, 0, 1, 0);
+    glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
+    glRotatef(-90.0, 1.0, 0.0, 0.0);
+    earthRot += 1.0;
+    gluSphere(sphere, 50.0, 50, 50);
     
     glfwSwapBuffers();
 }
@@ -134,7 +183,7 @@ void display()
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
-    camera->z = 20;
+    camera->z = 300;
 
     if (init())
     {
