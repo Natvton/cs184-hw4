@@ -15,7 +15,7 @@ GLfloat camZPos = 0.0f;
 
 GLfloat fieldOfView = 45.0f;
 GLfloat near = 1.0f;
-GLfloat far = 1500.0f;
+GLfloat far = 25000.0f;
 
 GLfloat camXRot = 0.0f;
 GLfloat camYRot = 0.0f;
@@ -35,6 +35,7 @@ GLUquadricObj *sphere = NULL;
 
 GLuint earth_textureID;
 GLuint mars_textureID;
+GLuint stars_textureID;
 GLfloat earthRot = 0.0f;
 GLfloat marsRot = 0.0f;
 
@@ -67,6 +68,13 @@ void initGL()
     img = loadBMP("mars.bmp");
     glGenTextures(1, &mars_textureID);
     glBindTexture(GL_TEXTURE_2D, mars_textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+
+    img = loadBMP("stars.bmp");
+    glGenTextures(1, &stars_textureID);
+    glBindTexture(GL_TEXTURE_2D, stars_textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
@@ -169,7 +177,7 @@ void drawScene()
     if (earthRot > 360.0)
       earthRot = 0.0;
 
-    gluSphere(sphere, 50.0, 50, 50);
+    gluSphere(sphere, 40.0, 50, 50);
     glPopMatrix();
 
     // Draw the mars
@@ -177,15 +185,33 @@ void drawScene()
     glBindTexture(GL_TEXTURE_2D, mars_textureID); 
     glRotatef(90.0, 0.0, 1.0, 0.0); //orient mars
     glRotatef(-90.0, 1.0, 0.0, 0.0);
-    glTranslatef(100.0,0.0,0.0); //move it back a bit
+    glTranslatef(100.0,100.0,0.0); //move it back a bit
 
     marsRot -= 2.0;
     glRotatef(marsRot,0.0,0.0,1.0); //spin mars -2 degrees every frame
     if (marsRot > 360.0)
       marsRot = 0.0;
 
-    gluSphere(sphere, 100.0, 50, 50);
+    gluSphere(sphere, 40.0, 50, 50);
     glPopMatrix();
+
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glScalef(5.0,5.0,1.0);
+    glMatrixMode(GL_MODELVIEW);
+
+    // Draw the stars
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, stars_textureID); 
+    glRotatef(90.0, 0.0, 1.0, 0.0); //orient mars
+    glRotatef(-90.0, 1.0, 0.0, 0.0);
+    glTranslatef(8000.0,0.0,0.0);
+    gluSphere(sphere, 10000.0, 50, 50);
+    glPopMatrix();
+
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
 
     glfwSwapBuffers(); // Swap the buffers to display the scene (so we don't have to watch it being drawn!)
 }
