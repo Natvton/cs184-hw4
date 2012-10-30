@@ -7,6 +7,7 @@
 #include "camera.h"
 #include "keyboard.h"
 #include "imageloader.h" 
+#include "glm.h"
 
 using namespace std;
 
@@ -37,6 +38,8 @@ GLuint stars_textureID;
 GLuint moon_textureID;
 float earthRot = 0.0f;
 float moonRev = 0.0f;
+
+GLMmodel* wheatley = glmReadOBJ("wheatley.obj");
 
 void handleMouse(int x, int y)
 {
@@ -102,7 +105,7 @@ bool init()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    glClearColor(0, 0, 0, 1);
+    glClearColor(0, 1, 0, 1);
     glfwSwapInterval(1);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
@@ -121,9 +124,11 @@ bool init()
     gluQuadricNormals(sphere, GLU_SMOOTH);
 
     glDisable(GL_LIGHTING);
-
     glfwSetKeyCallback(handleKeyboard);
     glfwSetMousePosCallback(handleMouse);
+
+    glmFacetNormals(wheatley);
+    glmVertexNormals(wheatley, 90.0);
 
     return true;
 }
@@ -198,12 +203,19 @@ void display()
         gluSphere(sphere, 10000, 50, 50);
     glPopMatrix();
 
+    glPushMatrix();
+        glTranslatef(2, 0, 290);
+        glmDraw(wheatley, GLM_SMOOTH|GLM_TEXTURE|GLM_MATERIAL);
+    glPopMatrix();
+
+
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
     
     glfwSwapBuffers();
 }
+
 
 int main(int argc, char **argv)
 {
