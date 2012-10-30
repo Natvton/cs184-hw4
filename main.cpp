@@ -4,6 +4,7 @@
 #include <GL/glut.h>
 #include <GL/glu.h>
 #include <math.h>   
+#include <FreeImage.h>
 #include "camera.h"
 #include "keyboard.h"
 #include "imageloader.h" 
@@ -227,6 +228,20 @@ void display()
     glfwSwapBuffers();
 }
 
+void saveScreenshot(string name)
+{
+    int pix = windowWidth * windowHeight;
+    BYTE pixels[3*pix];	
+    glReadBuffer(GL_FRONT);
+    glReadPixels(0,0,windowWidth,windowHeight,GL_BGR,GL_UNSIGNED_BYTE, pixels);
+
+    FIBITMAP *img = FreeImage_ConvertFromRawBits(pixels, windowWidth, windowHeight, windowWidth * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, false);
+    
+    std::cout << "Saving screenshot: " << name << "\n";
+
+    FreeImage_Save(FIF_PNG, img, name.c_str(), 0);
+}
+
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
@@ -239,6 +254,9 @@ int main(int argc, char **argv)
         while (running)
         {
             display();
+
+            if (keyboard->isHeld('P'))
+                saveScreenshot("screenshot.png");
 
             running = !glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED);
         }
