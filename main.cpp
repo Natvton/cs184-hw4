@@ -36,6 +36,8 @@ GLuint mars_textureID;
 GLuint smiley_textureID;
 GLuint stars_textureID;
 GLuint moon_textureID;
+GLuint eye_textureID;
+
 float earthRot = 0.0f;
 float moonRev = 0.0f;
 
@@ -98,8 +100,8 @@ bool loadTexture(string filename, GLuint &texture) {
 void loadTextures()
 {
     string texture_location = "textures/";
-    string textures[] = { "earth.png","mars.png","smiley.png","stars.png", "moon.png" };
-    GLuint * textureID[] = { &earth_textureID, &mars_textureID, &smiley_textureID, &stars_textureID, &moon_textureID };
+    string textures[] = { "earth.png","mars.png","smiley.png","stars.png", "moon.png", "eye.png" };
+    GLuint * textureID[] = { &earth_textureID, &mars_textureID, &smiley_textureID, &stars_textureID, &moon_textureID, &eye_textureID };
     for (int i=0; i < sizeof(textures) / sizeof(string); i++) {	
         loadTexture(texture_location + textures[i], *textureID[i]);
     }
@@ -249,7 +251,8 @@ void display()
     glPushMatrix();
         glTranslatef(2, 0, 190);
         glScalef(10,10,10);
-        glmDraw(wheatley, GLM_SMOOTH|GLM_TEXTURE|GLM_MATERIAL);
+        glBindTexture(GL_TEXTURE_2D, eye_textureID); 
+        glmDraw(wheatley, GLM_SMOOTH | GLM_TEXTURE | GLM_MATERIAL);
     glPopMatrix();
 
     if (keyboard->isHeld('T'))
