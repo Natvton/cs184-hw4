@@ -7,6 +7,7 @@
 #include <string>
 #include "camera.h"
 #include "keyboard.h"
+#include "glm.h"
 
 using namespace std;
 
@@ -37,6 +38,8 @@ GLuint stars_textureID;
 GLuint moon_textureID;
 float earthRot = 0.0f;
 float moonRev = 0.0f;
+
+GLMmodel* wheatley = glmReadOBJ("wheatley.obj");
 
 // load a bitmap with freeimage
 bool loadBitmap(string filename, FIBITMAP* &bitmap) {
@@ -103,7 +106,6 @@ void loadTextures()
 
 }
 
-
 void handleMouse(int x, int y)
 {
     int dx = x - (windowWidth/2.0);
@@ -150,7 +152,7 @@ bool init()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    glClearColor(0, 0, 0, 1);
+    glClearColor(0, 1, 0, 1);
     glfwSwapInterval(1);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
@@ -167,9 +169,11 @@ bool init()
     gluQuadricNormals(sphere, GLU_SMOOTH);
 
     glDisable(GL_LIGHTING);
-
     glfwSetKeyCallback(handleKeyboard);
     glfwSetMousePosCallback(handleMouse);
+
+    glmFacetNormals(wheatley);
+    glmVertexNormals(wheatley, 90.0);
 
     return true;
 }
@@ -242,20 +246,24 @@ void display()
         gluSphere(sphere, 20.0, 50, 50);
     glPopMatrix();
 
+    glPushMatrix();
+        glTranslatef(2, 0, 190);
+        glScalef(10,10,10);
+        glmDraw(wheatley, GLM_SMOOTH|GLM_TEXTURE|GLM_MATERIAL);
+    glPopMatrix();
+
+    if (keyboard->isHeld('T'))
+        glColor3f(0, 0, 0);
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glScalef(5,1,1);
     glMatrixMode(GL_MODELVIEW);
-
-    if (keyboard->isHeld('T'))
-        glColor3f(0, 0, 0);
-    glPushMatrix();
-        glRotatef(90.0, 0.0, 1.0, 0.0);
-        glRotatef(-90.0, 1.0, 0.0, 0.0);
-        glBindTexture(GL_TEXTURE_2D, stars_textureID); 
-        gluSphere(sphere, 10000, 50, 50);
-    glPopMatrix();
-
+        glPushMatrix();
+            glRotatef(90.0, 0.0, 1.0, 0.0);
+            glRotatef(-90.0, 1.0, 0.0, 0.0);
+            glBindTexture(GL_TEXTURE_2D, stars_textureID); 
+            gluSphere(sphere, 10000, 50, 50);
+        glPopMatrix();
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
