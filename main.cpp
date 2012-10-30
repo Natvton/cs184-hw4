@@ -7,7 +7,6 @@
 #include <string>
 #include "camera.h"
 #include "keyboard.h"
-#include "imageloader.h" 
 
 using namespace std;
 
@@ -39,6 +38,72 @@ GLuint moon_textureID;
 float earthRot = 0.0f;
 float moonRev = 0.0f;
 
+// load a bitmap with freeimage
+bool loadBitmap(string filename, FIBITMAP* &bitmap) {
+  // get the file format
+  FREE_IMAGE_FORMAT format = FreeImage_GetFileType(filename.c_str(), 0);
+  if (format == FIF_UNKNOWN)
+    format = FreeImage_GetFIFFromFilename(filename.c_str());
+  if (format == FIF_UNKNOWN)
+    return false;
+
+  // load the image
+  bitmap = FreeImage_Load(format, filename.c_str());
+  if (!bitmap)
+    return false;
+
+  return true;
+}
+
+
+// load a texture into opengl with freeimage
+bool loadTexture(string filename, GLuint &texture) {
+  FIBITMAP *bitmap = NULL;
+  if (!loadBitmap(filename, bitmap)) {
+    return false;
+  }
+
+  // convert to 32 bit bit-depth
+  FIBITMAP *bitmap32 = FreeImage_ConvertTo32Bits(bitmap);
+  FreeImage_Unload(bitmap);
+  if (!bitmap32) {
+    return false;
+  }
+  bitmap = bitmap32;
+
+  // get bits and dimensions
+  BYTE *bits = FreeImage_GetBits(bitmap);
+  int w = FreeImage_GetWidth(bitmap);
+  int h = FreeImage_GetHeight(bitmap);
+
+  // get bit order
+  int order = GL_BGRA;
+
+  // upload texture to opengl
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  gluBuild2DMipmaps(GL_TEXTURE_2D, 4, w, h, order, GL_UNSIGNED_BYTE, (GLvoid*)bits);
+
+  // forget our copy of the bitmap now that it's stored the card
+  FreeImage_Unload(bitmap);
+
+  return true;
+}
+
+void loadTextures()
+{
+    string texture_location = "textures/";
+    string textures[] = { "earth.png","mars.png","smiley.png","stars.png", "moon.png" };
+    GLuint * textureID[] = { &earth_textureID, &mars_textureID, &smiley_textureID, &stars_textureID, &moon_textureID };
+    for (int i=0; i < sizeof(textures) / sizeof(string); i++) {	
+        loadTexture(texture_location + textures[i], *textureID[i]);
+    }
+
+}
+
+
 void handleMouse(int x, int y)
 {
     int dx = x - (windowWidth/2.0);
@@ -61,24 +126,6 @@ void handleKeyboard(int key, int action)
             keyboard->keyRelease(key);
             break;
     }
-}
-
-void loadTextures()
-{
-    string texture_location = "textures/";
-    string textures[] = { "earth.bmp","mars.bmp","smiley.bmp","stars.bmp", "moon.bmp" };
-    GLuint * textureID[] = { &earth_textureID, &mars_textureID, &smiley_textureID, &stars_textureID, &moon_textureID };
-    for (int i=0; i < sizeof(textures) / sizeof(string); i++) {	
-	Image* img = loadBMP((texture_location + textures[i]).c_str()); 
-	glGenTextures(1, textureID[i]);
-	glBindTexture(GL_TEXTURE_2D, *textureID[i]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
-
-	delete img;
-    }
-
 }
 
 bool init()
@@ -111,8 +158,6 @@ bool init()
     glDepthFunc(GL_LEQUAL);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
     glLineWidth(2.0f);  
-
-    glEnable(GL_TEXTURE_2D);    // Required for textures
 
     loadTextures();
 
@@ -160,17 +205,27 @@ void display()
 
     moveCamera();
 
+    if (!keyboard->isHeld('T'))
+    {
+        glEnable(GL_TEXTURE_2D);
+        if (keyboard->isHeld('Z'))
+            glBindTexture(GL_TEXTURE_2D, mars_textureID); 
+        else if (keyboard->isHeld('X'))
+            glBindTexture(GL_TEXTURE_2D, smiley_textureID); 
+        else
+            glBindTexture(GL_TEXTURE_2D, earth_textureID); 
+        glColor3f(1, 1, 1);
+    }
+    else
+        glDisable(GL_TEXTURE_2D);
+
+
     glRotatef(radToDeg(camera->getPitch()), 1, 0, 0);
     glRotatef(radToDeg(camera->getYaw()), 0, 1, 0);
     glTranslatef(-camera->x, -camera->y, -camera->z);
 
-    if (keyboard->isHeld('Z'))
-        glBindTexture(GL_TEXTURE_2D, mars_textureID); 
-    else if (keyboard->isHeld('X'))
-        glBindTexture(GL_TEXTURE_2D, smiley_textureID); 
-    else
-        glBindTexture(GL_TEXTURE_2D, earth_textureID); 
-
+    if (keyboard->isHeld('T'))
+        glColor3f(0, 1, 0);
     glPushMatrix();
         glRotatef(earthRot++, 0, 1, 0);
         glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
@@ -181,7 +236,7 @@ void display()
         glRotatef(15, 1, 0, 0);
         glRotatef(moonRev+=0.5, 0, 1, 0);
         glTranslatef(100, 0 ,0);
-        glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
+        glRotatef(90.0, 0.0, 1.0, 0.0);
         glRotatef(-90.0, 1.0, 0.0, 0.0);
         glBindTexture(GL_TEXTURE_2D, moon_textureID); 
         gluSphere(sphere, 20.0, 50, 50);
@@ -192,6 +247,8 @@ void display()
     glScalef(5,1,1);
     glMatrixMode(GL_MODELVIEW);
 
+    if (keyboard->isHeld('T'))
+        glColor3f(0, 0, 0);
     glPushMatrix();
         glRotatef(90.0, 0.0, 1.0, 0.0);
         glRotatef(-90.0, 1.0, 0.0, 0.0);
