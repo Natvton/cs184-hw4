@@ -1,10 +1,10 @@
-#include <iostream>
- 
+#include <iostream> 
 #include <GL/glfw.h>
 #include <GL/glut.h>
 #include <GL/glu.h>
 #include <math.h>   
 #include <FreeImage.h>
+#include <string>
 #include "camera.h"
 #include "keyboard.h"
 #include "imageloader.h" 
@@ -21,9 +21,9 @@ int far = 15000;
 float mouseXSensitivity = 500.0;
 float mouseYSensitivity = 500.0;
 
-float strafeSpeed = 1.0;
-float moveSpeed = 1.0;
-float upSpeed = 1.0;
+float strafeSpeed = 5.0;
+float moveSpeed = 5.0;
+float upSpeed = 5.0;
 
 const float PI = 3.14159265359;
 
@@ -65,42 +65,20 @@ void handleKeyboard(int key, int action)
 
 void loadTextures()
 {
-    Image* img = loadBMP("textures/earth.bmp");
-    glGenTextures(1, &earth_textureID);
-    glBindTexture(GL_TEXTURE_2D, earth_textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+    string texture_location = "textures/";
+    string textures[] = { "earth.bmp","mars.bmp","smiley.bmp","stars.bmp", "moon.bmp" };
+    GLuint * textureID[] = { &earth_textureID, &mars_textureID, &smiley_textureID, &stars_textureID, &moon_textureID };
+    for (int i=0; i < sizeof(textures) / sizeof(string); i++) {	
+	Image* img = loadBMP((texture_location + textures[i]).c_str()); 
+	glGenTextures(1, textureID[i]);
+	glBindTexture(GL_TEXTURE_2D, *textureID[i]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
 
-    img = loadBMP("textures/mars.bmp");
-    glGenTextures(1, &mars_textureID);
-    glBindTexture(GL_TEXTURE_2D, mars_textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
+	delete img;
+    }
 
-    img = loadBMP("textures/smiley.bmp");
-    glGenTextures(1, &smiley_textureID);
-    glBindTexture(GL_TEXTURE_2D, smiley_textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
-
-    img = loadBMP("textures/stars.bmp");
-    glGenTextures(1, &stars_textureID);
-    glBindTexture(GL_TEXTURE_2D, stars_textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
-
-    img = loadBMP("textures/moon.bmp");
-    glGenTextures(1, &moon_textureID);
-    glBindTexture(GL_TEXTURE_2D, moon_textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width, img->height, 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels);
-
-    delete img;
 }
 
 bool init()
