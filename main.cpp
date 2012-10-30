@@ -191,24 +191,22 @@ void display()
         gluSphere(sphere, 20.0, 50, 50);
     glPopMatrix();
 
+    glPushMatrix();
+        glTranslatef(2, 0, 190);
+        glScalef(10,10,10);
+        glmDraw(wheatley, GLM_SMOOTH|GLM_TEXTURE|GLM_MATERIAL);
+    glPopMatrix();
+
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glScalef(5,1,1);
     glMatrixMode(GL_MODELVIEW);
-
-    glPushMatrix();
-        glRotatef(90.0, 0.0, 1.0, 0.0);
-        glRotatef(-90.0, 1.0, 0.0, 0.0);
-        glBindTexture(GL_TEXTURE_2D, stars_textureID); 
-        gluSphere(sphere, 10000, 50, 50);
-    glPopMatrix();
-
-    glPushMatrix();
-        glTranslatef(2, 0, 290);
-        glmDraw(wheatley, GLM_SMOOTH|GLM_TEXTURE|GLM_MATERIAL);
-    glPopMatrix();
-
-
+        glPushMatrix();
+            glRotatef(90.0, 0.0, 1.0, 0.0);
+            glRotatef(-90.0, 1.0, 0.0, 0.0);
+            glBindTexture(GL_TEXTURE_2D, stars_textureID); 
+            gluSphere(sphere, 10000, 50, 50);
+        glPopMatrix();
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
