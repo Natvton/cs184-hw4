@@ -215,17 +215,17 @@ void drawTetrahedron()
         glVertex3f(5, 0, 0);
         glVertex3f(2.5, 0, 4.33);
 
-        glNormal3f(0.847307, -0.206755, -0.489207);
+        glNormal3f(0.816317, -0.333901, -0.471315);
         glVertex3f(0, 0, 0);
         glVertex3f(2.5, 0, 4.33);
         glVertex3f(2.5, 4.085, 1.436);
 
-        glNormal3f(0, 0.5, -0.866019);
+        glNormal3f(0, 0.331636, -0.943407);
         glVertex3f(0, 0, 0);
         glVertex3f(5, 0, 0);
         glVertex3f(2.5, 4.085, 1.436);
 
-        glNormal3f(0.847307, 0.206755, 0.489207);
+        glNormal3f(0.816317, 0.333901, 0.471315);
         glVertex3f(5, 0, 0);
         glVertex3f(2.5, 0, 4.33);
         glVertex3f(2.5, 4.085, 1.436);
