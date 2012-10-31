@@ -245,10 +245,7 @@ void display()
     moveCamera();
 
     if (!keyboard->isHeld('T'))
-    {
         glEnable(GL_TEXTURE_2D);
-        glColor3f(1, 1, 1);
-    }
     else
         glDisable(GL_TEXTURE_2D);
 
@@ -257,11 +254,10 @@ void display()
     glRotatef(radToDeg(camera->getYaw()), 0, 1, 0);
     glTranslatef(-camera->x, -camera->y, -camera->z);
 
-    if (keyboard->isHeld('T'))
-        glColor3f(0, 1, 0);
-
     //sun
     glPushMatrix();
+        if (keyboard->isHeld('T'))
+            glColor3f(1, 0.4, 0);
         glRotatef(90.0, 0.0, 1.0, 0.0);
         glRotatef(-90.0, 1.0, 0.0, 0.0);
         glBindTexture(GL_TEXTURE_2D, sun_textureID); 
@@ -274,12 +270,15 @@ void display()
 
         //earth
         glPushMatrix();
-            if (keyboard->isHeld('Z'))
+            if (keyboard->isHeld('T'))
+                glColor3f(0, 0, 1);
+            else if (keyboard->isHeld('Z'))
                 glBindTexture(GL_TEXTURE_2D, mars_textureID); 
             else if (keyboard->isHeld('X'))
                 glBindTexture(GL_TEXTURE_2D, smiley_textureID); 
             else
                 glBindTexture(GL_TEXTURE_2D, earth_textureID); 
+
             glRotatef(earthRot++, 0, 1, 0);
             glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
             glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -288,6 +287,8 @@ void display()
 
         //moon
         glPushMatrix();
+            if (keyboard->isHeld('T'))
+                glColor3f(0.7,0.7,0.7);
             glRotatef(15, 1, 0, 0);
             glRotatef(moonRev+=0.5, 0, 1, 0);
             glTranslatef(100, 0 ,0);
@@ -304,6 +305,8 @@ void display()
 
         //wheatley
         glPushMatrix();
+            if (keyboard->isHeld('T'))
+                glColor3f(1, 1, 1);
             glRotatef(wheatleyRev+=2, 0.981, 0.196, 0);
             glTranslatef(0, 60 ,0);
             glRotatef(-wheatleyRev, 0.981, 0.196, 0);
@@ -341,6 +344,8 @@ void display()
     glScalef(5,1,1);
     glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
+            if (keyboard->isHeld('T'))
+                glColor3f(0, 0, 0);
             glRotatef(90.0, 0.0, 1.0, 0.0);
             glRotatef(-90.0, 1.0, 0.0, 0.0);
             glBindTexture(GL_TEXTURE_2D, stars_textureID); 
@@ -349,6 +354,8 @@ void display()
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
+
+    glColor3f(1, 1, 1);
     
     glfwSwapBuffers();
 }
