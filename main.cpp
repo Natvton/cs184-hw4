@@ -37,9 +37,13 @@ GLuint smiley_textureID;
 GLuint stars_textureID;
 GLuint moon_textureID;
 GLuint eye_textureID;
+GLuint sun_textureID;
 
+float earthRev = 0.0f;
 float earthRot = 0.0f;
 float moonRev = 0.0f;
+float triforceRev = 200.0f;
+float wheatleyRev = 0.0f;
 
 GLMmodel* wheatley = glmReadOBJ("wheatley.obj");
 
@@ -100,8 +104,8 @@ bool loadTexture(string filename, GLuint &texture) {
 void loadTextures()
 {
     string texture_location = "textures/";
-    string textures[] = { "earth.png","mars.png","smiley.png","stars.png", "moon.png", "eye.png" };
-    GLuint * textureID[] = { &earth_textureID, &mars_textureID, &smiley_textureID, &stars_textureID, &moon_textureID, &eye_textureID };
+    string textures[] = { "earth.png", "mars.png", "smiley.png", "stars2.png", "moon.png", "eye.png", "sun.png" };
+    GLuint * textureID[] = { &earth_textureID, &mars_textureID, &smiley_textureID, &stars_textureID, &moon_textureID, &eye_textureID, &sun_textureID };
     for (int i=0; i < sizeof(textures) / sizeof(string); i++) {	
         loadTexture(texture_location + textures[i], *textureID[i]);
     }
@@ -201,6 +205,35 @@ float radToDeg(float radians)
     return radians * (180.0/PI);
 }
 
+void drawTetrahedron()
+{
+    glBegin(GL_TRIANGLES);
+        glColor3f(1, 0.7,  0);
+
+        glNormal3f(0, 1, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f(5, 0, 0);
+        glVertex3f(2.5, 0, 4.33);
+
+        glNormal3f(0.847307, -0.206755, -0.489207);
+        glVertex3f(0, 0, 0);
+        glVertex3f(2.5, 0, 4.33);
+        glVertex3f(2.5, 4.085, 1.436);
+
+        glNormal3f(0, 0.5, -0.866019);
+        glVertex3f(0, 0, 0);
+        glVertex3f(5, 0, 0);
+        glVertex3f(2.5, 4.085, 1.436);
+
+        glNormal3f(0.847307, 0.206755, 0.489207);
+        glVertex3f(5, 0, 0);
+        glVertex3f(2.5, 0, 4.33);
+        glVertex3f(2.5, 4.085, 1.436);
+
+        glColor3f(1, 1, 1);
+    glEnd();
+}
+
 void display()
 { 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -214,12 +247,6 @@ void display()
     if (!keyboard->isHeld('T'))
     {
         glEnable(GL_TEXTURE_2D);
-        if (keyboard->isHeld('Z'))
-            glBindTexture(GL_TEXTURE_2D, mars_textureID); 
-        else if (keyboard->isHeld('X'))
-            glBindTexture(GL_TEXTURE_2D, smiley_textureID); 
-        else
-            glBindTexture(GL_TEXTURE_2D, earth_textureID); 
         glColor3f(1, 1, 1);
     }
     else
@@ -232,31 +259,83 @@ void display()
 
     if (keyboard->isHeld('T'))
         glColor3f(0, 1, 0);
+
+    //sun
     glPushMatrix();
-        glRotatef(earthRot++, 0, 1, 0);
-        glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
-        glRotatef(-90.0, 1.0, 0.0, 0.0);
-        gluSphere(sphere, 50.0, 50, 50);
-    glPopMatrix();
-    glPushMatrix();
-        glRotatef(15, 1, 0, 0);
-        glRotatef(moonRev+=0.5, 0, 1, 0);
-        glTranslatef(100, 0 ,0);
         glRotatef(90.0, 0.0, 1.0, 0.0);
         glRotatef(-90.0, 1.0, 0.0, 0.0);
-        glBindTexture(GL_TEXTURE_2D, moon_textureID); 
-        gluSphere(sphere, 20.0, 50, 50);
+        glBindTexture(GL_TEXTURE_2D, sun_textureID); 
+        gluSphere(sphere, 100.0, 50, 50);
     glPopMatrix();
 
     glPushMatrix();
-        glTranslatef(2, 0, 190);
-        glScalef(10,10,10);
-        glBindTexture(GL_TEXTURE_2D, eye_textureID); 
-        glmDraw(wheatley, GLM_SMOOTH | GLM_TEXTURE | GLM_MATERIAL);
+        glRotatef(earthRev+=0.2, 0, 1, 0);
+        glTranslatef(500, 0 ,0);
+
+        //earth
+        glPushMatrix();
+            if (keyboard->isHeld('Z'))
+                glBindTexture(GL_TEXTURE_2D, mars_textureID); 
+            else if (keyboard->isHeld('X'))
+                glBindTexture(GL_TEXTURE_2D, smiley_textureID); 
+            else
+                glBindTexture(GL_TEXTURE_2D, earth_textureID); 
+            glRotatef(earthRot++, 0, 1, 0);
+            glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
+            glRotatef(-90.0, 1.0, 0.0, 0.0);
+            gluSphere(sphere, 50.0, 50, 50);
+        glPopMatrix();
+
+        //moon
+        glPushMatrix();
+            glRotatef(15, 1, 0, 0);
+            glRotatef(moonRev+=0.5, 0, 1, 0);
+            glTranslatef(100, 0 ,0);
+            glRotatef(90.0, 0.0, 1.0, 0.0);
+            glRotatef(-90.0, 1.0, 0.0, 0.0);
+            glBindTexture(GL_TEXTURE_2D, moon_textureID); 
+            gluSphere(sphere, 20.0, 50, 50);
+        glPopMatrix();
+    glPopMatrix();
+
+    glPushMatrix();
+        glRotatef(triforceRev+=0.5, 0, 1, 0);
+        glTranslatef(200, 0 ,0);
+
+        //wheatley
+        glPushMatrix();
+            glRotatef(wheatleyRev+=2, 0.981, 0.196, 0);
+            glTranslatef(0, 60 ,0);
+            glRotatef(-wheatleyRev, 0.981, 0.196, 0);
+            glScalef(10,10,10);
+            glBindTexture(GL_TEXTURE_2D, eye_textureID); 
+            glmDraw(wheatley, GLM_SMOOTH | GLM_TEXTURE | GLM_MATERIAL);
+        glPopMatrix();
+
+        //triforce
+        glPushMatrix();
+            glTranslatef(-5, -4.33, -2.894); //center it
+            glScalef(5,5,5);
+            drawTetrahedron();
+            glPushMatrix();
+                glTranslatef(5,0,0);
+                drawTetrahedron();
+            glPopMatrix();
+            glPushMatrix();
+                glTranslatef(2.5,0,4.33);
+                drawTetrahedron();
+            glPopMatrix();
+            glPushMatrix();
+                glTranslatef(2.5, 4.085, 1.436);
+                drawTetrahedron();
+            glPopMatrix();
+        glPopMatrix();
     glPopMatrix();
 
     if (keyboard->isHeld('T'))
         glColor3f(0, 0, 0);
+
+    //stars
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glScalef(5,1,1);
@@ -283,7 +362,7 @@ void saveScreenshot(string name)
 
     FIBITMAP *img = FreeImage_ConvertFromRawBits(pixels, windowWidth, windowHeight, windowWidth * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, false);
     
-    std::cout << "Saving screenshot: " << name << "\n";
+    std::cout << "Saving screenshot: " << name << std::endl;
 
     FreeImage_Save(FIF_PNG, img, name.c_str(), 0);
 }
@@ -291,7 +370,7 @@ void saveScreenshot(string name)
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
-    camera->z = 300;
+    camera->z = 1000;
 
     if (init())
     {
