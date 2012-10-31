@@ -8,6 +8,7 @@
 #include "camera.h"
 #include "keyboard.h"
 #include "glm.h"
+#include "shaders.h"
 
 using namespace std;
 
@@ -41,11 +42,41 @@ GLuint sun_textureID;
 
 float earthRev = 0.0f;
 float earthRot = 0.0f;
+float sunRot = 0.0f;
 float moonRev = 0.0f;
 float triforceRev = 200.0f;
 float wheatleyRev = 0.0f;
 
 GLMmodel* wheatley = glmReadOBJ("wheatley.obj");
+
+// Shaders
+GLuint vertexshader, fragmentshader, shaderprogram;
+
+// Lighting parameter array
+const int numLights = 10;
+GLfloat lightposn[4*numLights];
+GLfloat lightcolor[4*numLights];
+GLfloat lightransf[4*numLights];
+int numused;
+
+// Materials
+GLfloat ambient[4];
+GLfloat diffuse[4];
+GLfloat specular[4];
+GLfloat emission[4];
+GLfloat shininess;
+
+// Variables to set uniform params for lighting fragment shader
+GLuint lightcol ; 
+GLuint lightpos ; 
+GLuint numusedcol ; 
+GLuint enablelighting ; 
+GLuint ambientcol ; 
+GLuint diffusecol ; 
+GLuint specularcol ; 
+GLuint emissioncol ; 
+GLuint shininesscol ; 
+GLuint t0;
 
 // load a bitmap with freeimage
 bool loadBitmap(string filename, FIBITMAP* &bitmap) {
@@ -147,6 +178,24 @@ bool init()
         return false;
     }
     
+    // Initialize shaders
+
+    vertexshader = initshaders(GL_VERTEX_SHADER, "shaders/light.vert.glsl") ;
+    fragmentshader = initshaders(GL_FRAGMENT_SHADER, "shaders/light.frag.glsl") ;
+    shaderprogram = initprogram(vertexshader, fragmentshader) ; 
+
+    // These variables are defined in the shader
+    enablelighting = glGetUniformLocation(shaderprogram,"enablelighting") ;
+    lightpos = glGetUniformLocation(shaderprogram,"lightposn") ;       
+    lightcol = glGetUniformLocation(shaderprogram,"lightcolor") ;       
+    numusedcol = glGetUniformLocation(shaderprogram,"numused") ;       
+    ambientcol = glGetUniformLocation(shaderprogram,"ambient") ;       
+    diffusecol = glGetUniformLocation(shaderprogram,"diffuse") ;       
+    specularcol = glGetUniformLocation(shaderprogram,"specular") ;       
+    emissioncol = glGetUniformLocation(shaderprogram,"emission") ;       
+    shininesscol = glGetUniformLocation(shaderprogram,"shininess") ;           
+    t0 = glGetUniformLocation(shaderprogram, "tex0");
+
     glfwSetMousePos(windowWidth/2, windowHeight/2);
 
     glfwDisable(GLFW_MOUSE_CURSOR);
@@ -174,13 +223,13 @@ bool init()
     gluQuadricTexture(sphere, GL_TRUE);
     gluQuadricNormals(sphere, GLU_SMOOTH);
 
-    glDisable(GL_LIGHTING);
     glfwSetKeyCallback(handleKeyboard);
     glfwSetMousePosCallback(handleMouse);
 
     glmFacetNormals(wheatley);
     glmVertexNormals(wheatley, 90.0);
 
+    glEnable(GL_LIGHTING);
     return true;
 }
 
@@ -234,6 +283,25 @@ void drawTetrahedron()
     glEnd();
 }
 
+// Used to transform the lights
+void transformvec (const GLfloat input[4], GLfloat output[4]) {
+  GLfloat modelview[16] ; // in column major order
+  glGetFloatv(GL_MODELVIEW_MATRIX, modelview) ; 
+  
+  for (int i = 0 ; i < 4 ; i++) {
+    output[i] = 0 ; 
+    for (int j = 0 ; j < 4 ; j++) 
+      output[i] += modelview[4*j+i] * input[j] ; 
+  }
+}
+
+void set_rgba (GLfloat property[], float r, float g, float b, float a) {
+  property[0] = r;
+  property[1] = g;
+  property[2] = b;
+  property[3] = a;
+}
+
 void display()
 { 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -247,25 +315,79 @@ void display()
     if (!keyboard->isHeld('T'))
     {
         glEnable(GL_TEXTURE_2D);
-        glColor3f(1, 1, 1);
+        glColor3f(1, 1, 1); // Set to white when textures are enabled
     }
-    else
+    else {
         glDisable(GL_TEXTURE_2D);
+	glColor3f(0, 1, 0); // Set to green to increase visibility
+    }
 
-
+    // Instead of using glm::lookAt(eye, center, up) to calculate
+    // the modelview matrix and then loading that matrix
+    // We manually transform the modelview matrix
     glRotatef(radToDeg(camera->getPitch()), 1, 0, 0);
     glRotatef(radToDeg(camera->getYaw()), 0, 1, 0);
     glTranslatef(-camera->x, -camera->y, -camera->z);
 
-    if (keyboard->isHeld('T'))
-        glColor3f(0, 1, 0);
+    // Lighting and shaders
+    glUniform1i(enablelighting, true);
+
+    // Texture 0 send to shader
+    glUniform1i(t0, 0);
+
 
     //sun
+    glUniform1i(numusedcol, 1);
+    GLfloat sunlightTemp[4] = {0.0,0.0,0.0,1.0};
+    GLfloat sunlightPos[4];
+    transformvec(sunlightTemp, sunlightPos);
+    GLfloat sunlightColor[4] = {1.0,1.0,0.5,1.0};
+    glUniform4fv(lightpos,1,sunlightPos);
+    glUniform4fv(lightcol,1,sunlightColor);
+
     glPushMatrix();
+	glRotatef(sunRot+=0.1,0.0,1.0,0.0);
         glRotatef(90.0, 0.0, 1.0, 0.0);
         glRotatef(-90.0, 1.0, 0.0, 0.0);
+	glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, sun_textureID); 
+
+	set_rgba(ambient, 1.0, 0.75, 0.75, 1);
+	set_rgba(diffuse, 0.0, 0.0, 0.0, 1);
+	set_rgba(specular, 0.0, 0.0, 0.0, 1);
+	set_rgba(emission, 0.5, 0.5, 0.5, 1);
+	shininess = 0.5;
+	glUniform4fv(ambientcol,1, ambient);
+       	glUniform4fv(diffusecol,1, diffuse);
+	glUniform4fv(specularcol,1, specular);
+	glUniform4fv(emissioncol,1, emission);
+	glUniform1f(shininesscol, shininess);
+
         gluSphere(sphere, 100.0, 50, 50);
+    glPopMatrix();
+
+    //mars
+    glPushMatrix();
+        glActiveTexture(GL_TEXTURE0);
+	glRotatef(-earthRev+2000,0.0,1.0,0.0);
+	glTranslatef(1000.0,0.0,400.0);
+	glBindTexture(GL_TEXTURE_2D, mars_textureID); 
+	glRotatef(-earthRot, 0, 1, 0);
+	glRotatef(90.0, 0.0, 1.0, 0.0); //orient mars
+	glRotatef(-90.0, 1.0, 0.0, 0.0);
+	
+	set_rgba(ambient, 0.3, 0.3, 0.3, 1);
+	set_rgba(diffuse, 0.3, 0.3, 0.3, 1);
+	set_rgba(specular, 1.0, 1.0, 1.0, 1);
+	set_rgba(emission, 0.0, 0.0, 0.0, 1);
+	shininess = 0.3;
+	glUniform4fv(ambientcol,1, ambient);
+	glUniform4fv(diffusecol,1, diffuse);
+	glUniform4fv(specularcol,1, specular);
+	glUniform4fv(emissioncol,1, emission);
+	glUniform1f(shininesscol, shininess);
+	
+	gluSphere(sphere, 50.0, 50, 50);
     glPopMatrix();
 
     glPushMatrix();
@@ -274,15 +396,26 @@ void display()
 
         //earth
         glPushMatrix();
-            if (keyboard->isHeld('Z'))
-                glBindTexture(GL_TEXTURE_2D, mars_textureID); 
-            else if (keyboard->isHeld('X'))
+	glActiveTexture(GL_TEXTURE0);
+            if (keyboard->isHeld('X'))
                 glBindTexture(GL_TEXTURE_2D, smiley_textureID); 
             else
                 glBindTexture(GL_TEXTURE_2D, earth_textureID); 
             glRotatef(earthRot++, 0, 1, 0);
             glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
             glRotatef(-90.0, 1.0, 0.0, 0.0);
+
+	    set_rgba(ambient, 0.3, 0.3, 0.3, 1);
+	    set_rgba(diffuse, 0.3, 0.3, 0.3, 1);
+	    set_rgba(specular, 1.0, 1.0, 1.0, 1);
+	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
+	    shininess = 0.3;
+	    glUniform4fv(ambientcol,1, ambient);
+	    glUniform4fv(diffusecol,1, diffuse);
+	    glUniform4fv(specularcol,1, specular);
+	    glUniform4fv(emissioncol,1, emission);
+	    glUniform1f(shininesscol, shininess);
+
             gluSphere(sphere, 50.0, 50, 50);
         glPopMatrix();
 
@@ -293,13 +426,28 @@ void display()
             glTranslatef(100, 0 ,0);
             glRotatef(90.0, 0.0, 1.0, 0.0);
             glRotatef(-90.0, 1.0, 0.0, 0.0);
+
+	    set_rgba(ambient, 0.3, 0.3, 0.3, 1);
+	    set_rgba(diffuse, 0.3, 0.3, 0.3, 1);
+	    set_rgba(specular, 1.0, 1.0, 1.0, 1);
+	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
+	    shininess = 0.3;
+	    glUniform4fv(ambientcol,1, ambient);
+	    glUniform4fv(diffusecol,1, diffuse);
+	    glUniform4fv(specularcol,1, specular);
+	    glUniform4fv(emissioncol,1, emission);
+	    glUniform1f(shininesscol, shininess);
+
+	    glUniform4fv(ambientcol,1, ambient);
+
+	    glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, moon_textureID); 
             gluSphere(sphere, 20.0, 50, 50);
         glPopMatrix();
     glPopMatrix();
 
     glPushMatrix();
-        glRotatef(triforceRev+=0.5, 0, 1, 0);
+        glRotatef(triforceRev-=0.5, 0, 1, 0);
         glTranslatef(200, 0 ,0);
 
         //wheatley
@@ -308,6 +456,19 @@ void display()
             glTranslatef(0, 60 ,0);
             glRotatef(-wheatleyRev, 0.981, 0.196, 0);
             glScalef(10,10,10);
+
+	    set_rgba(ambient, 0.1, 0.1, 0.1, 1);
+	    set_rgba(diffuse, 0.5, 0.5, 0.5, 1);
+	    set_rgba(specular, 0.5, 0.5, 0.5, 1);
+	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
+	    shininess = 96;
+	    glUniform4fv(ambientcol,1, ambient);
+	    glUniform4fv(diffusecol,1, diffuse);
+	    glUniform4fv(specularcol,1, specular);
+	    glUniform4fv(emissioncol,1, emission);
+	    glUniform1f(shininesscol, shininess);
+
+	    glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, eye_textureID); 
             glmDraw(wheatley, GLM_SMOOTH | GLM_TEXTURE | GLM_MATERIAL);
         glPopMatrix();
@@ -316,17 +477,33 @@ void display()
         glPushMatrix();
             glTranslatef(-5, -4.33, -2.894); //center it
             glScalef(5,5,5);
+
+	    set_rgba(ambient, 1.0, 0.0, 0.0, 1);
+	    glUniform4fv(ambientcol,1, ambient);
+
             drawTetrahedron();
             glPushMatrix();
                 glTranslatef(5,0,0);
+
+		set_rgba(ambient, 0.0, 0.0, 1.0, 1);
+		glUniform4fv(ambientcol,1, ambient);
+
                 drawTetrahedron();
             glPopMatrix();
             glPushMatrix();
                 glTranslatef(2.5,0,4.33);
+
+		set_rgba(ambient, 0.0, 1.0, 0.0, 1);
+		glUniform4fv(ambientcol,1, ambient);
+
                 drawTetrahedron();
             glPopMatrix();
             glPushMatrix();
                 glTranslatef(2.5, 4.085, 1.436);
+
+		set_rgba(ambient, 1.0, 1.0, 1.0, 1);
+		glUniform4fv(ambientcol,1, ambient);
+
                 drawTetrahedron();
             glPopMatrix();
         glPopMatrix();
@@ -338,11 +515,24 @@ void display()
     //stars
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
+    glActiveTexture(GL_TEXTURE0);
     glScalef(5,1,1);
     glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
             glRotatef(90.0, 0.0, 1.0, 0.0);
             glRotatef(-90.0, 1.0, 0.0, 0.0);
+
+	    set_rgba(ambient, 1.0, 1.0, 1.0, 1);
+	    set_rgba(diffuse, 1.0, 1.0, 1.0, 1);
+	    set_rgba(specular, 0.0, 0.0, 0.0, 1);
+	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
+	    shininess = 1.0;
+	    glUniform4fv(ambientcol,1, ambient);
+	    glUniform4fv(diffusecol,1, diffuse);
+	    glUniform4fv(specularcol,1, specular);
+	    glUniform4fv(emissioncol,1, emission);
+	    glUniform1f(shininesscol, shininess);
+
             glBindTexture(GL_TEXTURE_2D, stars_textureID); 
             gluSphere(sphere, 10000, 50, 50);
         glPopMatrix();
