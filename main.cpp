@@ -264,17 +264,17 @@ void drawTetrahedron()
         glVertex3f(5, 0, 0);
         glVertex3f(2.5, 0, 4.33);
 
-        glNormal3f(0.847307, -0.206755, -0.489207);
+        glNormal3f(0.816317, -0.333901, -0.471315);
         glVertex3f(0, 0, 0);
         glVertex3f(2.5, 0, 4.33);
         glVertex3f(2.5, 4.085, 1.436);
 
-        glNormal3f(0, 0.5, -0.866019);
+        glNormal3f(0, 0.331636, -0.943407);
         glVertex3f(0, 0, 0);
         glVertex3f(5, 0, 0);
         glVertex3f(2.5, 4.085, 1.436);
 
-        glNormal3f(0.847307, 0.206755, 0.489207);
+        glNormal3f(0.816317, 0.333901, 0.471315);
         glVertex3f(5, 0, 0);
         glVertex3f(2.5, 0, 4.33);
         glVertex3f(2.5, 4.085, 1.436);
@@ -312,8 +312,7 @@ void display()
 
     moveCamera();
 
-    if (!keyboard->isHeld('T'))
-    {
+    if (!keyboard->isHeld('T')) {
         glEnable(GL_TEXTURE_2D);
         glColor3f(1, 1, 1); // Set to white when textures are enabled
     }
@@ -328,6 +327,7 @@ void display()
     glRotatef(radToDeg(camera->getPitch()), 1, 0, 0);
     glRotatef(radToDeg(camera->getYaw()), 0, 1, 0);
     glTranslatef(-camera->x, -camera->y, -camera->z);
+
 
     // Lighting and shaders
     glUniform1i(enablelighting, true);
@@ -347,6 +347,9 @@ void display()
 
     glPushMatrix();
 	glRotatef(sunRot+=0.1,0.0,1.0,0.0);
+
+        if (keyboard->isHeld('T'))
+            glColor3f(1, 0.4, 0);
         glRotatef(90.0, 0.0, 1.0, 0.0);
         glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glActiveTexture(GL_TEXTURE0);
@@ -397,10 +400,15 @@ void display()
         //earth
         glPushMatrix();
 	glActiveTexture(GL_TEXTURE0);
-            if (keyboard->isHeld('X'))
+            if (keyboard->isHeld('T'))
+                glColor3f(0, 0, 1);
+            else if (keyboard->isHeld('Z'))
+                glBindTexture(GL_TEXTURE_2D, mars_textureID); 
+            else if (keyboard->isHeld('X'))
                 glBindTexture(GL_TEXTURE_2D, smiley_textureID); 
             else
                 glBindTexture(GL_TEXTURE_2D, earth_textureID); 
+
             glRotatef(earthRot++, 0, 1, 0);
             glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
             glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -421,6 +429,8 @@ void display()
 
         //moon
         glPushMatrix();
+            if (keyboard->isHeld('T'))
+                glColor3f(0.7,0.7,0.7);
             glRotatef(15, 1, 0, 0);
             glRotatef(moonRev+=0.5, 0, 1, 0);
             glTranslatef(100, 0 ,0);
@@ -452,6 +462,8 @@ void display()
 
         //wheatley
         glPushMatrix();
+            if (keyboard->isHeld('T'))
+                glColor3f(1, 1, 1);
             glRotatef(wheatleyRev+=2, 0.981, 0.196, 0);
             glTranslatef(0, 60 ,0);
             glRotatef(-wheatleyRev, 0.981, 0.196, 0);
@@ -519,6 +531,8 @@ void display()
     glScalef(5,1,1);
     glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
+            if (keyboard->isHeld('T'))
+                glColor3f(0, 0, 0);
             glRotatef(90.0, 0.0, 1.0, 0.0);
             glRotatef(-90.0, 1.0, 0.0, 0.0);
 
@@ -539,6 +553,8 @@ void display()
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
+
+    glColor3f(1, 1, 1);
     
     glfwSwapBuffers();
 }
