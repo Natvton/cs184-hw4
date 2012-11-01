@@ -594,7 +594,7 @@ void display()
 	    set_rgba(diffuse, 0.0, 0.0, 0.0, 1);
 	    set_rgba(specular, 1.0, 0.7, 0.0, 1);
 	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
-	    shininess = 1.0;
+	    shininess = 2.0;
 	    glUniform4fv(ambientcol,1, ambient);
 	    glUniform4fv(diffusecol,1, diffuse);
 	    glUniform4fv(specularcol,1, specular);
