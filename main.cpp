@@ -54,10 +54,6 @@ GLuint vertexshader, fragmentshader, shaderprogram;
 
 // Lighting parameter array
 const int numLights = 10;
-GLfloat lightposn[4*numLights];
-GLfloat lightcolor[4*numLights];
-GLfloat lightransf[4*numLights];
-int numused;
 
 // Materials
 GLfloat ambient[4];
@@ -338,16 +334,29 @@ void display()
     // Texture 0 send to shader
     glUniform1i(t0, 0);
 
+    int numused = 1;
+    glUniform1i(numusedcol, numused);
+    GLfloat lightposn[] = {0.0,0.0,0.0,1.0};
+    GLfloat lightcolor[] = {1.0,1.0,0.6,1.0};
+    GLfloat lightransf[4*numused];
+    GLfloat lightin[4];
+    GLfloat lightout[4];
 
-    //sun
-    glUniform1i(numusedcol, 1);
-    GLfloat sunlightTemp[4] = {0.0,100.0,0.0,1.0};
-    GLfloat sunlightPos[4];
-    transformvec(sunlightTemp, sunlightPos);
-    GLfloat sunlightColor[4] = {1.0,1.0,0.5,1.0};
-    glUniform4fv(lightpos,1,sunlightPos);
-    glUniform4fv(lightcol,1,sunlightColor);
+    for(int i=0; i < numused; i++) {
+      lightin[0] = lightposn[4*i];
+      lightin[1] = lightposn[4*i+1];
+      lightin[2] = lightposn[4*i+2];
+      lightin[3] = lightposn[4*i+3];
+      transformvec(lightin, lightout);
+      lightransf[4*i] = lightout[0];
+      lightransf[4*i+1] = lightout[1];
+      lightransf[4*i+2] = lightout[2];
+      lightransf[4*i+3] = lightout[3];
+    }
+    glUniform4fv(lightpos,numused,lightransf);
+    glUniform4fv(lightcol,numused,lightcolor);
 
+    // sun
     glPushMatrix();
 	glRotatef(sunRot+=0.1,0.0,1.0,0.0);
 
@@ -474,7 +483,7 @@ void display()
         glRotatef(triforceRev-=0.5, 0, 1, 0);
         glTranslatef(200, 0 ,0);
 
-        //wheatley
+	//wheatley
         glPushMatrix();
             glRotatef(wheatleyRev+=2, 0.981, 0.196, 0);
             glTranslatef(0, 60 ,0);
