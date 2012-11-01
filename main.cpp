@@ -169,6 +169,13 @@ void handleKeyboard(int key, int action)
 bool init()
 {
     glfwInit();
+
+    GLFWvidmode return_struct;
+
+    glfwGetDesktopMode( &return_struct );
+
+    windowHeight = return_struct.Height;
+    windowWidth = return_struct.Width;
  
     if(!glfwOpenWindow(windowWidth, windowHeight, 8, 8, 8, 8, 24, 0, GLFW_WINDOW))
     {
