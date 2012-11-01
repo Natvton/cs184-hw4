@@ -32,6 +32,7 @@ uniform vec4 emission ;
 uniform float shininess ; 
 
 uniform sampler2D tex0;
+uniform bool enableTex;
 
 vec4 ComputeLight (const in vec3 direction, const in vec4 lightcolor, const in vec3 normal, const in vec3 halfvec, const in vec4 mydiffuse, const in vec4 myspecular, const in float myshininess) {
 
@@ -74,8 +75,16 @@ void main (void)
 	    vec3 half0 = normalize(direction + eyedirn);
 	    vec4 col = ComputeLight(direction, lightcolor[i], normal, half0, diffuse, specular, shininess);
 	    finalcolor += col;
-	    }        
-        gl_FragColor = finalcolor * texture2D(tex0, gl_TexCoord[0].st); 
+	    }          
+	if (enableTex)
+            gl_FragColor = finalcolor * texture2D(tex0, gl_TexCoord[0].st); 
+	else
+	    gl_FragColor = finalcolor;
 	}
-    else gl_FragColor = texture2D(tex0, gl_TexCoord[0].st);
+
+    else
+        if (enableTex) 
+            gl_FragColor = texture2D(tex0, gl_TexCoord[0].st);
+        else
+            gl_FragColor = ambient + emission;
 }

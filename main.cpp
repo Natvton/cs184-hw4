@@ -76,6 +76,8 @@ GLuint diffusecol ;
 GLuint specularcol ; 
 GLuint emissioncol ; 
 GLuint shininesscol ; 
+
+GLuint enableTextures;
 GLuint t0;
 
 // load a bitmap with freeimage
@@ -195,6 +197,7 @@ bool init()
     emissioncol = glGetUniformLocation(shaderprogram,"emission") ;       
     shininesscol = glGetUniformLocation(shaderprogram,"shininess") ;           
     t0 = glGetUniformLocation(shaderprogram, "tex0");
+    enableTextures = glGetUniformLocation(shaderprogram, "enableTex");
 
     glfwSetMousePos(windowWidth/2, windowHeight/2);
 
@@ -230,6 +233,7 @@ bool init()
     glmVertexNormals(wheatley, 90.0);
 
     glEnable(GL_LIGHTING);
+    glUniform1i(enablelighting, true);
     return true;
 }
 
@@ -315,10 +319,12 @@ void display()
     if (!keyboard->isHeld('T')) {
         glEnable(GL_TEXTURE_2D);
         glColor3f(1, 1, 1); // Set to white when textures are enabled
+	glUniform1i(enableTextures, true);
     }
     else {
         glDisable(GL_TEXTURE_2D);
-	glColor3f(0, 1, 0); // Set to green to increase visibility
+	set_rgba(ambient, 0, 1, 0, 1);
+	glUniform1i(enableTextures, false);
     }
 
     // Instead of using glm::lookAt(eye, center, up) to calculate
@@ -329,16 +335,13 @@ void display()
     glTranslatef(-camera->x, -camera->y, -camera->z);
 
 
-    // Lighting and shaders
-    glUniform1i(enablelighting, true);
-
     // Texture 0 send to shader
     glUniform1i(t0, 0);
 
 
     //sun
     glUniform1i(numusedcol, 1);
-    GLfloat sunlightTemp[4] = {0.0,0.0,0.0,1.0};
+    GLfloat sunlightTemp[4] = {0.0,100.0,0.0,1.0};
     GLfloat sunlightPos[4];
     transformvec(sunlightTemp, sunlightPos);
     GLfloat sunlightColor[4] = {1.0,1.0,0.5,1.0};
@@ -348,8 +351,6 @@ void display()
     glPushMatrix();
 	glRotatef(sunRot+=0.1,0.0,1.0,0.0);
 
-        if (keyboard->isHeld('T'))
-            glColor3f(1, 0.4, 0);
         glRotatef(90.0, 0.0, 1.0, 0.0);
         glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glActiveTexture(GL_TEXTURE0);
@@ -360,6 +361,10 @@ void display()
 	set_rgba(specular, 0.0, 0.0, 0.0, 1);
 	set_rgba(emission, 0.5, 0.5, 0.5, 1);
 	shininess = 0.5;
+
+        if (keyboard->isHeld('T'))
+	  set_rgba(ambient, 1, 1, 0, 1);
+
 	glUniform4fv(ambientcol,1, ambient);
        	glUniform4fv(diffusecol,1, diffuse);
 	glUniform4fv(specularcol,1, specular);
@@ -384,6 +389,9 @@ void display()
 	set_rgba(specular, 1.0, 1.0, 1.0, 1);
 	set_rgba(emission, 0.0, 0.0, 0.0, 1);
 	shininess = 0.3;
+
+	if (keyboard->isHeld('T'))
+	  set_rgba(ambient, 0.7, 0.2, 0.2, 1);
 	glUniform4fv(ambientcol,1, ambient);
 	glUniform4fv(diffusecol,1, diffuse);
 	glUniform4fv(specularcol,1, specular);
@@ -400,9 +408,7 @@ void display()
         //earth
         glPushMatrix();
 	glActiveTexture(GL_TEXTURE0);
-            if (keyboard->isHeld('T'))
-                glColor3f(0, 0, 1);
-            else if (keyboard->isHeld('Z'))
+            if (keyboard->isHeld('Z'))
                 glBindTexture(GL_TEXTURE_2D, mars_textureID); 
             else if (keyboard->isHeld('X'))
                 glBindTexture(GL_TEXTURE_2D, smiley_textureID); 
@@ -418,6 +424,11 @@ void display()
 	    set_rgba(specular, 1.0, 1.0, 1.0, 1);
 	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
 	    shininess = 0.3;
+
+            if (keyboard->isHeld('T'))
+	      set_rgba(ambient, 0.4, 0.4, 0.7, 1);
+
+
 	    glUniform4fv(ambientcol,1, ambient);
 	    glUniform4fv(diffusecol,1, diffuse);
 	    glUniform4fv(specularcol,1, specular);
@@ -429,8 +440,6 @@ void display()
 
         //moon
         glPushMatrix();
-            if (keyboard->isHeld('T'))
-                glColor3f(0.7,0.7,0.7);
             glRotatef(15, 1, 0, 0);
             glRotatef(moonRev+=0.5, 0, 1, 0);
             glTranslatef(100, 0 ,0);
@@ -442,6 +451,11 @@ void display()
 	    set_rgba(specular, 1.0, 1.0, 1.0, 1);
 	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
 	    shininess = 0.3;
+
+            if (keyboard->isHeld('T'))
+	      set_rgba(ambient, 0.7, 0.7, 0.7, 1);
+
+
 	    glUniform4fv(ambientcol,1, ambient);
 	    glUniform4fv(diffusecol,1, diffuse);
 	    glUniform4fv(specularcol,1, specular);
@@ -462,8 +476,6 @@ void display()
 
         //wheatley
         glPushMatrix();
-            if (keyboard->isHeld('T'))
-                glColor3f(1, 1, 1);
             glRotatef(wheatleyRev+=2, 0.981, 0.196, 0);
             glTranslatef(0, 60 ,0);
             glRotatef(-wheatleyRev, 0.981, 0.196, 0);
@@ -474,6 +486,10 @@ void display()
 	    set_rgba(specular, 0.5, 0.5, 0.5, 1);
 	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
 	    shininess = 96;
+
+            if (keyboard->isHeld('T'))
+	      set_rgba(ambient, 0.0, 0.0, 1.0, 1.0);
+
 	    glUniform4fv(ambientcol,1, ambient);
 	    glUniform4fv(diffusecol,1, diffuse);
 	    glUniform4fv(specularcol,1, specular);
@@ -531,8 +547,6 @@ void display()
     glScalef(5,1,1);
     glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
-            if (keyboard->isHeld('T'))
-                glColor3f(0, 0, 0);
             glRotatef(90.0, 0.0, 1.0, 0.0);
             glRotatef(-90.0, 1.0, 0.0, 0.0);
 
@@ -541,6 +555,10 @@ void display()
 	    set_rgba(specular, 0.0, 0.0, 0.0, 1);
 	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
 	    shininess = 1.0;
+
+            if (keyboard->isHeld('T'))
+	      set_rgba(ambient, 0,0,0,1);
+
 	    glUniform4fv(ambientcol,1, ambient);
 	    glUniform4fv(diffusecol,1, diffuse);
 	    glUniform4fv(specularcol,1, specular);
