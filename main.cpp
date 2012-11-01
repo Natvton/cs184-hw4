@@ -1,6 +1,5 @@
 #include <iostream> 
 #include <GL/glfw.h>
-#include <GL/glut.h>
 #include <GL/glu.h>
 #include <math.h>   
 #include <FreeImage.h>
@@ -22,16 +21,14 @@ int far = 15000;
 float mouseXSensitivity = 500.0;
 float mouseYSensitivity = 500.0;
 
-float strafeSpeed = 5.0;
-float moveSpeed = 5.0;
-float upSpeed = 5.0;
+float speed = 5.0;
 
 const float PI = 3.14159265359;
 
 Camera *camera = new Camera();
 Keyboard *keyboard = new Keyboard();
 
-GLUquadricObj *sphere = NULL;
+GLUquadricObj *quadObj = NULL;
 GLuint earth_textureID;
 GLuint mars_textureID;
 GLuint smiley_textureID;
@@ -137,7 +134,7 @@ bool loadTexture(string filename, GLuint &texture) {
 void loadTextures()
 {
     string texture_location = "textures/";
-    string textures[] = { "earth.png", "mars.png", "smiley.png", "stars2.png", "moon.png", "eye.png", "sun.png" };
+    string textures[] = { "earth.png", "mars.png", "smiley.png", "stars2.png", "moon.png", "eye2.png", "sun.png" };
     GLuint * textureID[] = { &earth_textureID, &mars_textureID, &smiley_textureID, &stars_textureID, &moon_textureID, &eye_textureID, &sun_textureID };
     for (int i=0; i < sizeof(textures) / sizeof(string); i++) {	
         loadTexture(texture_location + textures[i], *textureID[i]);
@@ -221,10 +218,10 @@ bool init()
 
     loadTextures();
 
-    sphere = gluNewQuadric();
-    gluQuadricDrawStyle(sphere, GLU_FILL);
-    gluQuadricTexture(sphere, GL_TRUE);
-    gluQuadricNormals(sphere, GLU_SMOOTH);
+    quadObj = gluNewQuadric();
+    gluQuadricDrawStyle(quadObj, GLU_FILL);
+    gluQuadricTexture(quadObj, GL_TRUE);
+    gluQuadricNormals(quadObj, GLU_SMOOTH);
 
     glfwSetKeyCallback(handleKeyboard);
     glfwSetMousePosCallback(handleMouse);
@@ -239,18 +236,24 @@ bool init()
 
 void moveCamera()
 {
+    float adjustedSpeed = speed;
+    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1))
+        adjustedSpeed *= 3;
+    else if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_2))
+        adjustedSpeed /= 3;
+
     if (keyboard->isHeld('W'))
-        camera->forward(moveSpeed);
+        camera->forward(adjustedSpeed);
     if (keyboard->isHeld('S'))
-        camera->forward(-moveSpeed);
+        camera->forward(-adjustedSpeed);
     if (keyboard->isHeld('A'))
-        camera->strafe(-strafeSpeed);
+        camera->strafe(-adjustedSpeed);
     if (keyboard->isHeld('D'))
-        camera->strafe(strafeSpeed);
+        camera->strafe(adjustedSpeed);
     if (keyboard->isHeld(' '))
-        camera->up(upSpeed);
+        camera->up(adjustedSpeed);
     if (keyboard->isHeld(GLFW_KEY_LSHIFT))
-        camera->up(-upSpeed);
+        camera->up(-adjustedSpeed);
 }
 
 float radToDeg(float radians)
@@ -322,6 +325,37 @@ void display()
 
     moveCamera();
 
+    //spaceship
+    glPushMatrix();
+	glUniform1i(enableTextures, false);
+
+	set_rgba(ambient, 0, 0, 0, 1);
+	set_rgba(diffuse, 0, 0, 0, 1);
+	set_rgba(specular, 1, 0.1, 0.1, 1);
+	set_rgba(emission, 0, 0, 0, 1);
+	shininess = 2;
+
+	glUniform4fv(ambientcol,1, ambient);
+       	glUniform4fv(diffusecol,1, diffuse);
+	glUniform4fv(specularcol,1, specular);
+	glUniform4fv(emissioncol,1, emission);
+	glUniform1f(shininesscol, shininess);
+
+        glPushMatrix();
+            glScalef(2, 1, 1);
+            glTranslatef(0,40,-50);
+            gluSphere(quadObj, 30.0, 50, 50);
+        glPopMatrix();
+        glPushMatrix();
+            glTranslatef(20,-15,-100);
+            gluCylinder(quadObj, 0, 5, 100, 50, 2);
+        glPopMatrix();
+        glPushMatrix();
+            glTranslatef(-20,-15,-100);
+            gluCylinder(quadObj, 0, 5, 100, 50, 2);
+        glPopMatrix();
+    glPopMatrix();
+
     if (!keyboard->isHeld('T')) {
         glEnable(GL_TEXTURE_2D);
         glColor3f(1, 1, 1); // Set to white when textures are enabled
@@ -333,9 +367,7 @@ void display()
 	glUniform1i(enableTextures, false);
     }
 
-    // Instead of using glm::lookAt(eye, center, up) to calculate
-    // the modelview matrix and then loading that matrix
-    // We manually transform the modelview matrix
+    //move scene to fit camera location
     glRotatef(radToDeg(camera->getPitch()), 1, 0, 0);
     glRotatef(radToDeg(camera->getYaw()), 0, 1, 0);
     glTranslatef(-camera->x, -camera->y, -camera->z);
@@ -377,13 +409,13 @@ void display()
 	glUniform4fv(emissioncol,1, emission);
 	glUniform1f(shininesscol, shininess);
 
-        gluSphere(sphere, 100.0, 50, 50);
+        gluSphere(quadObj, 100.0, 50, 50);
     glPopMatrix();
 
     //mars
     glPushMatrix();
         glActiveTexture(GL_TEXTURE0);
-	glRotatef(-earthRev+200,0.0,1.0,0.0);
+	glRotatef(-(earthRev/2.0)+170,0.0,1.0,0.0);
 	glTranslatef(800.0,0.0,400.0);
 	glBindTexture(GL_TEXTURE_2D, mars_textureID); 
 	glRotatef(-earthRot, 0, 1, 0);
@@ -404,7 +436,7 @@ void display()
 	glUniform4fv(emissioncol,1, emission);
 	glUniform1f(shininesscol, shininess);
 	
-	gluSphere(sphere, 50.0, 50, 50);
+	gluSphere(quadObj, 50.0, 50, 50);
     glPopMatrix();
 
     glPushMatrix();
@@ -432,7 +464,10 @@ void display()
 	    shininess = 0.3;
 
             if (keyboard->isHeld('T'))
-	      set_rgba(ambient, 0.4, 0.4, 0.7, 1);
+            {
+                set_rgba(diffuse, 0.0, 0.0, 1.0, 1);
+                set_rgba(specular, 0.0, 0.0, 0.0, 1);
+            }
 
 
 	    glUniform4fv(ambientcol,1, ambient);
@@ -441,7 +476,7 @@ void display()
 	    glUniform4fv(emissioncol,1, emission);
 	    glUniform1f(shininesscol, shininess);
 
-            gluSphere(sphere, 50.0, 50, 50);
+            gluSphere(quadObj, 50.0, 50, 50);
         glPopMatrix();
 
         //moon
@@ -459,7 +494,12 @@ void display()
 	    shininess = 0.3;
 
             if (keyboard->isHeld('T'))
-	      set_rgba(ambient, 0.7, 0.7, 0.7, 1);
+            {
+	        set_rgba(ambient, 0.1, 0.1, 0.1, 1);
+                set_rgba(diffuse, 0.0, 0.0, 0.0, 1);
+                set_rgba(specular, 0.6, 0.6, 0.6, 1);
+                shininess = 1.0;
+            }
 
 
 	    glUniform4fv(ambientcol,1, ambient);
@@ -472,7 +512,7 @@ void display()
 
 	    glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, moon_textureID); 
-            gluSphere(sphere, 20.0, 50, 50);
+            gluSphere(quadObj, 20.0, 50, 50);
         glPopMatrix();
     glPopMatrix();
 
@@ -487,7 +527,7 @@ void display()
             glRotatef(-wheatleyRev, 0.981, 0.196, 0);
             glScalef(10,10,10);
 
-	    set_rgba(ambient, 0.5, 0.5, 0.5, 1);
+	    set_rgba(ambient, 0.4, 0.4, 0.4, 1);
 	    set_rgba(diffuse, 1.0, 1.0, 1.0, 1);
 	    set_rgba(specular, 0.0, 0.0, 0.0, 1);
 	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
@@ -568,7 +608,7 @@ void display()
 	    glUniform1f(shininesscol, shininess);
 
             glBindTexture(GL_TEXTURE_2D, stars_textureID); 
-            gluSphere(sphere, 10000, 50, 50);
+            gluSphere(quadObj, 10000, 50, 50);
         glPopMatrix();
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
@@ -595,7 +635,6 @@ void saveScreenshot(string name)
 
 int main(int argc, char **argv)
 {
-    glutInit(&argc, argv);
     camera->z = 1000;
 
     if (init())
