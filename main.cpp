@@ -257,14 +257,12 @@ float radToDeg(float radians)
 void drawTetrahedron()
 {
     glBegin(GL_TRIANGLES);
-        glColor3f(1, 0.7,  0);
-
         glNormal3f(0, 1, 0);
         glVertex3f(0, 0, 0);
         glVertex3f(5, 0, 0);
         glVertex3f(2.5, 0, 4.33);
 
-        glNormal3f(0.816317, -0.333901, -0.471315);
+        glNormal3f(-0.816317, 0.333901, 0.471315);
         glVertex3f(0, 0, 0);
         glVertex3f(2.5, 0, 4.33);
         glVertex3f(2.5, 4.085, 1.436);
@@ -278,8 +276,6 @@ void drawTetrahedron()
         glVertex3f(5, 0, 0);
         glVertex3f(2.5, 0, 4.33);
         glVertex3f(2.5, 4.085, 1.436);
-
-        glColor3f(1, 1, 1);
     glEnd();
 }
 
@@ -304,6 +300,16 @@ void set_rgba (GLfloat property[], float r, float g, float b, float a) {
 
 void display()
 { 
+
+    if (!keyboard->isHeld('E'))
+    {
+        earthRot++;
+        earthRev    += 0.2;
+        moonRev     += 0.5;
+        triforceRev -= 0.5;
+        wheatleyRev += 2;
+    }
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
  
     // Reset the matrix
@@ -386,8 +392,8 @@ void display()
     //mars
     glPushMatrix();
         glActiveTexture(GL_TEXTURE0);
-	glRotatef(-earthRev+2000,0.0,1.0,0.0);
-	glTranslatef(1000.0,0.0,400.0);
+	glRotatef(-earthRev+200,0.0,1.0,0.0);
+	glTranslatef(800.0,0.0,400.0);
 	glBindTexture(GL_TEXTURE_2D, mars_textureID); 
 	glRotatef(-earthRot, 0, 1, 0);
 	glRotatef(90.0, 0.0, 1.0, 0.0); //orient mars
@@ -411,7 +417,7 @@ void display()
     glPopMatrix();
 
     glPushMatrix();
-        glRotatef(earthRev+=0.2, 0, 1, 0);
+        glRotatef(earthRev, 0, 1, 0);
         glTranslatef(500, 0 ,0);
 
         //earth
@@ -424,7 +430,7 @@ void display()
             else
                 glBindTexture(GL_TEXTURE_2D, earth_textureID); 
 
-            glRotatef(earthRot++, 0, 1, 0);
+            glRotatef(earthRot, 0, 1, 0);
             glRotatef(90.0, 0.0, 1.0, 0.0); //orient earth
             glRotatef(-90.0, 1.0, 0.0, 0.0);
 
@@ -450,7 +456,7 @@ void display()
         //moon
         glPushMatrix();
             glRotatef(15, 1, 0, 0);
-            glRotatef(moonRev+=0.5, 0, 1, 0);
+            glRotatef(moonRev, 0, 1, 0);
             glTranslatef(100, 0 ,0);
             glRotatef(90.0, 0.0, 1.0, 0.0);
             glRotatef(-90.0, 1.0, 0.0, 0.0);
@@ -480,21 +486,21 @@ void display()
     glPopMatrix();
 
     glPushMatrix();
-        glRotatef(triforceRev-=0.5, 0, 1, 0);
+        glRotatef(triforceRev, 0, 1, 0);
         glTranslatef(200, 0 ,0);
 
 	//wheatley
         glPushMatrix();
-            glRotatef(wheatleyRev+=2, 0.981, 0.196, 0);
+            glRotatef(wheatleyRev, 0.981, 0.196, 0);
             glTranslatef(0, 60 ,0);
             glRotatef(-wheatleyRev, 0.981, 0.196, 0);
             glScalef(10,10,10);
 
-	    set_rgba(ambient, 0.1, 0.1, 0.1, 1);
-	    set_rgba(diffuse, 0.5, 0.5, 0.5, 1);
-	    set_rgba(specular, 0.5, 0.5, 0.5, 1);
+	    set_rgba(ambient, 0.5, 0.5, 0.5, 1);
+	    set_rgba(diffuse, 1.0, 1.0, 1.0, 1);
+	    set_rgba(specular, 0.0, 0.0, 0.0, 1);
 	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
-	    shininess = 96;
+	    shininess = 1000000;
 
             if (keyboard->isHeld('T'))
 	      set_rgba(ambient, 0.0, 0.0, 1.0, 1.0);
@@ -515,32 +521,28 @@ void display()
             glTranslatef(-5, -4.33, -2.894); //center it
             glScalef(5,5,5);
 
-	    set_rgba(ambient, 1.0, 0.0, 0.0, 1);
+	    set_rgba(ambient, 0.0, 0.0, 0.0, 1);
+	    set_rgba(diffuse, 0.0, 0.0, 0.0, 1);
+	    set_rgba(specular, 1.0, 0.7, 0.0, 1);
+	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
+	    shininess = 1.0;
 	    glUniform4fv(ambientcol,1, ambient);
+	    glUniform4fv(diffusecol,1, diffuse);
+	    glUniform4fv(specularcol,1, specular);
+	    glUniform4fv(emissioncol,1, emission);
+	    glUniform1f(shininesscol, shininess);
 
             drawTetrahedron();
             glPushMatrix();
                 glTranslatef(5,0,0);
-
-		set_rgba(ambient, 0.0, 0.0, 1.0, 1);
-		glUniform4fv(ambientcol,1, ambient);
-
                 drawTetrahedron();
             glPopMatrix();
             glPushMatrix();
                 glTranslatef(2.5,0,4.33);
-
-		set_rgba(ambient, 0.0, 1.0, 0.0, 1);
-		glUniform4fv(ambientcol,1, ambient);
-
                 drawTetrahedron();
             glPopMatrix();
             glPushMatrix();
                 glTranslatef(2.5, 4.085, 1.436);
-
-		set_rgba(ambient, 1.0, 1.0, 1.0, 1);
-		glUniform4fv(ambientcol,1, ambient);
-
                 drawTetrahedron();
             glPopMatrix();
         glPopMatrix();
