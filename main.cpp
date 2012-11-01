@@ -212,7 +212,7 @@ bool init()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    glClearColor(0, 1, 0, 1);
+    glClearColor(1, 1, 1, 1);
     glfwSwapInterval(1);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
@@ -381,13 +381,17 @@ void display()
     // Texture 0 send to shader
     glUniform1i(t0, 0);
 
-    int numused = 2;
+    int numused = 3;
     glUniform1i(numusedcol, numused);
     GLfloat lightposn[] = {0,0,0,1,
-                           0,0,0,1};
+                           0,0,0,1,
+                           1,0,0,0};
+    
     GLfloat lightcolor[] = {1.0,1.0,0.6,1.0,
-                            0,0,1,1};
-    GLfloat attenuate[] = {0, 1};
+                            1.0,0.2,0,1,
+                            0,1,0,1};
+
+    GLfloat attenuate[] = {0, 1, 0};
 
     GLfloat lightransf[4*numused];
     GLfloat lightin[4];
@@ -542,10 +546,10 @@ void display()
     glPushMatrix();
         glRotatef(triforceRev, 0, 1, 0);
         glTranslatef(200, 0 ,0);
-
+	
 	//wheatley
         glPushMatrix();
-            glRotatef(wheatleyRev, 0.981, 0.196, 0);
+            glRotatef(wheatleyRev*0.8, -wheatleyRev*1.5, 0.196, 0);
             glTranslatef(0, 60 ,0);
             glRotatef(-wheatleyRev, 0.981, 0.196, 0);
             glScalef(10,10,10);
@@ -569,7 +573,7 @@ void display()
             glBindTexture(GL_TEXTURE_2D, eye_textureID); 
 
 	    glPushMatrix();
-	    glTranslatef(0.1,0,1.2);
+	    glTranslatef(0,0,1.6);
 	    lightin[0] = lightposn[4];
 	    lightin[1] = lightposn[5];
 	    lightin[2] = lightposn[6];
@@ -579,12 +583,10 @@ void display()
 	    lightransf[5] = lightout[1];
 	    lightransf[6] = lightout[2];
 	    lightransf[7] = lightout[3];
-	    //	    gluSphere(sphere, 0.5, 50, 50);
 	    glPopMatrix();
 	    glUniform4fv(lightpos,numused,lightransf);
             glmDraw(wheatley, GLM_SMOOTH | GLM_TEXTURE | GLM_MATERIAL);
         glPopMatrix();
-
         //triforce
         glPushMatrix();
             glTranslatef(-5, -4.33, -2.894); //center it
