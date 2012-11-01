@@ -13,11 +13,12 @@
 varying vec4 color ;
 varying vec3 mynormal ; 
 varying vec4 myvertex ; 
-
+varying vec4 mypos;				
 const int numLights = 10 ; 
 uniform bool enablelighting ; // are we lighting at all (global).
 uniform vec4 lightposn[numLights] ; // positions of lights 
 uniform vec4 lightcolor[numLights] ; // colors of lights
+uniform float attenuate[numLights];
 uniform int numused ;               // number of lights used
 
 // Now, set the material parameters.  These could be varying and/or bound to 
@@ -74,7 +75,10 @@ void main (void)
 	    }
 	    vec3 half0 = normalize(direction + eyedirn);
 	    vec4 col = ComputeLight(direction, lightcolor[i], normal, half0, diffuse, specular, shininess);
-	    finalcolor += col;
+	    if(attenuate[i] > 0)
+	        finalcolor += col * 1/(0.1 + sqrt((distance(mypos.xyz, lightposn[i].xyz))*attenuate[i]));
+	    else
+	        finalcolor += col;
 	    }          
 	if (enableTex)
             gl_FragColor = finalcolor * texture2D(tex0, gl_TexCoord[0].st); 
