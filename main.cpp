@@ -73,6 +73,7 @@ GLuint specularcol ;
 GLuint emissioncol ; 
 GLuint shininesscol ; 
 
+GLuint atten;
 GLuint enableTextures;
 GLuint t0;
 
@@ -194,6 +195,7 @@ bool init()
     shininesscol = glGetUniformLocation(shaderprogram,"shininess") ;           
     t0 = glGetUniformLocation(shaderprogram, "tex0");
     enableTextures = glGetUniformLocation(shaderprogram, "enableTex");
+    atten = glGetUniformLocation(shaderprogram, "attenuate");
 
     glfwSetMousePos(windowWidth/2, windowHeight/2);
 
@@ -340,10 +342,14 @@ void display()
     // Texture 0 send to shader
     glUniform1i(t0, 0);
 
-    int numused = 1;
+    int numused = 2;
     glUniform1i(numusedcol, numused);
-    GLfloat lightposn[] = {0.0,0.0,0.0,1.0};
-    GLfloat lightcolor[] = {1.0,1.0,0.6,1.0};
+    GLfloat lightposn[] = {0,0,0,1,
+                           0,0,0,1};
+    GLfloat lightcolor[] = {1.0,1.0,0.6,1.0,
+                            0,0,1,1};
+    GLfloat attenuate[] = {0, 1};
+
     GLfloat lightransf[4*numused];
     GLfloat lightin[4];
     GLfloat lightout[4];
@@ -359,6 +365,7 @@ void display()
       lightransf[4*i+2] = lightout[2];
       lightransf[4*i+3] = lightout[3];
     }
+    glUniform1fv(atten,numused,attenuate);
     glUniform4fv(lightpos,numused,lightransf);
     glUniform4fv(lightcol,numused,lightcolor);
 
@@ -497,10 +504,10 @@ void display()
             glScalef(10,10,10);
 
 	    set_rgba(ambient, 0.5, 0.5, 0.5, 1);
-	    set_rgba(diffuse, 1.0, 1.0, 1.0, 1);
-	    set_rgba(specular, 0.0, 0.0, 0.0, 1);
+	    set_rgba(diffuse, 0.6, 0.6, 0.6, 1);
+	    set_rgba(specular, 0.2, 0.2, 0.2, 1);
 	    set_rgba(emission, 0.0, 0.0, 0.0, 1);
-	    shininess = 1000000;
+	    shininess = 0.8;
 
             if (keyboard->isHeld('T'))
 	      set_rgba(ambient, 0.0, 0.0, 1.0, 1.0);
@@ -513,6 +520,21 @@ void display()
 
 	    glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, eye_textureID); 
+
+	    glPushMatrix();
+	    glTranslatef(0.1,0,1.2);
+	    lightin[0] = lightposn[4];
+	    lightin[1] = lightposn[5];
+	    lightin[2] = lightposn[6];
+	    lightin[3] = lightposn[7];	    
+	    transformvec(lightin, lightout);
+	    lightransf[4] = lightout[0];
+	    lightransf[5] = lightout[1];
+	    lightransf[6] = lightout[2];
+	    lightransf[7] = lightout[3];
+	    //	    gluSphere(sphere, 0.5, 50, 50);
+	    glPopMatrix();
+	    glUniform4fv(lightpos,numused,lightransf);
             glmDraw(wheatley, GLM_SMOOTH | GLM_TEXTURE | GLM_MATERIAL);
         glPopMatrix();
 
