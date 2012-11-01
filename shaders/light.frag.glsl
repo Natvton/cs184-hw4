@@ -75,8 +75,10 @@ void main (void)
 	    }
 	    vec3 half0 = normalize(direction + eyedirn);
 	    vec4 col = ComputeLight(direction, lightcolor[i], normal, half0, diffuse, specular, shininess);
+	    if(lightposn[i].w == 0)
+	        col = col;
 	    if(attenuate[i] > 0)
-	        finalcolor += col * 1/(0.1 + sqrt((distance(mypos.xyz, lightposn[i].xyz))*attenuate[i]));
+	        finalcolor += col * 1/(sqrt((distance(mypos.xyz, lightposn[i].xyz))*attenuate[i]));
 	    else
 	        finalcolor += col;
 	    }          
