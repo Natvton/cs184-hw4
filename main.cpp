@@ -173,6 +173,8 @@ bool init()
 
     windowHeight = return_struct.Height;
     windowWidth = return_struct.Width;
+
+    if (windowWidth > 1920) windowWidth = 1920;
  
     if(!glfwOpenWindow(windowWidth, windowHeight, 8, 8, 8, 8, 24, 0, GLFW_WINDOW))
     {
@@ -381,7 +383,10 @@ void display()
     // Texture 0 send to shader
     glUniform1i(t0, 0);
 
-    int numused = 3;
+    int numused = 2;
+    if (keyboard->isHeld('Q'))
+        numused = 3;
+
     glUniform1i(numusedcol, numused);
     GLfloat lightposn[] = {0,0,0,1,
                            0,0,0,1,
